@@ -12,7 +12,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.GraduationProject">
+        android:theme="@style/Theme.GraduationProject"
+        tools:replace="android:theme">
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Graduation Project"
 include(":app")
+include(":cameraModule")

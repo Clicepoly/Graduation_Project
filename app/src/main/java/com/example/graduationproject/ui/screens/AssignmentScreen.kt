@@ -19,14 +19,12 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.graduationproject.DataClass.Exercise
 import com.example.graduationproject.DataClass.ExerciseStatus
@@ -46,13 +44,22 @@ private val TextSub = Color(0xFF5D5D5D)
 fun AssignmentScreen(
     userLevel: String = "A",
     currentDay: Int = 1,
+    currentWeek: Int = 1,
     isSurveyComplete: Boolean = false,
     onNavigateToSurvey: () -> Unit = {},
+    onStartTraining: (String?) -> Unit = {},
     viewModel: AssignmentViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val baseLevel = userLevel.take(1).uppercase()
+    val safeDay = currentDay.coerceIn(1, 5)
+    val safeWeek = currentWeek.coerceIn(1, 12)
+    val topBarTitle = if (isSurveyComplete) {
+        "訓練手冊 - 第 $safeWeek 週"
+    } else {
+        "訓練手冊 - 第 1 週"
+    }
 
-    // 修正：使用 LaunchedEffect 確保測驗完成時橫幅自動彈出
     var isBannerVisible by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(isSurveyComplete) {
         if (isSurveyComplete) {
@@ -61,9 +68,9 @@ fun AssignmentScreen(
     }
 
     // 修正：確保在測驗完成、等級變化或天數變化時，立即加載數據
-    LaunchedEffect(userLevel, currentDay, isSurveyComplete) {
+    LaunchedEffect(baseLevel, safeDay, safeWeek, isSurveyComplete) {
         if (isSurveyComplete) {
-            viewModel.updateParams(userLevel, currentDay)
+            viewModel.updateParams(baseLevel, safeDay, safeWeek)
         }
     }
 
@@ -72,7 +79,7 @@ fun AssignmentScreen(
             LargeTopAppBar(
                 title = {
                     Text(
-                        "訓練手冊 - 第 1 週",
+                        topBarTitle,
                         fontSize = 32.scaledSp(),
                         fontWeight = FontWeight.Bold,
                         color = TextMain
@@ -86,8 +93,6 @@ fun AssignmentScreen(
         containerColor = BeigeBg
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-            
-            // 提示橫幅
             AnimatedVisibility(
                 visible = isBannerVisible && isSurveyComplete,
                 enter = expandVertically(),
@@ -135,10 +140,7 @@ fun AssignmentScreen(
                     items(uiState.exercises, key = { it.id }) { exercise ->
                         ExerciseCard(
                             exercise = exercise,
-                            onStartClick = { 
-                                // 模擬訓練開始，實際上這裡會導向 AI 偵測頁面，目前先直接標記完成
-                                viewModel.completeExercise(exercise.id) 
-                            }
+                            onStartClick = { onStartTraining(exercise.id);viewModel.completeExercise(exercise.id) }
                         )
                     }
                 }

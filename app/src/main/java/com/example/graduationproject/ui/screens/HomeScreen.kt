@@ -48,12 +48,17 @@ fun ElderlyDashboard(
     accountId: Int,
     isSurveyComplete: Boolean = false,
     userLevel: String = "A",
+    trainingDay: Int = 1,
     onNavigateToSettings: () -> Unit = {},
     onNavigateToSurvey: () -> Unit = {},
-    onStartTraining: () -> Unit = {}
+    onStartTraining: (String?) -> Unit = {}
 ) {
     var currentPoints by remember { mutableIntStateOf(0) }
     var selectedItem by remember { mutableIntStateOf(0) }
+    val safeTrainingDay = trainingDay.coerceIn(1, 60)
+    val currentWeek = ((safeTrainingDay - 1) / 5) + 1
+    val currentDay = ((safeTrainingDay - 1) % 5) + 1
+
     LaunchedEffect(accountId) {
         if (accountId <= 0) return@LaunchedEffect
         try {
@@ -140,7 +145,7 @@ fun ElderlyDashboard(
                     ScaleButton(
                         onClick = {
                             if (isSurveyComplete) {
-                                onStartTraining() // 執行原本的訓練開始邏輯
+                                //onStartTraining(null) // 執行原本的訓練開始邏輯
                                 selectedItem = 1  // 切換底部分頁到「任務集」(AssignmentScreen)
                             } else {
                                 onNavigateToSurvey()
@@ -170,8 +175,11 @@ fun ElderlyDashboard(
                 )
                 1 -> AssignmentScreen(
                     userLevel = userLevel,
+                    currentDay = currentDay,
+                    currentWeek = currentWeek,
                     isSurveyComplete = isSurveyComplete,
-                    onNavigateToSurvey = onNavigateToSurvey
+                    onNavigateToSurvey = onNavigateToSurvey,
+                    onStartTraining = onStartTraining
                 )
                 2 -> CommunityScreen()
                 3 -> RewardScreen(

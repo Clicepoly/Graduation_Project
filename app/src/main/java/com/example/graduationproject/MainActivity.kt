@@ -20,7 +20,9 @@ import com.example.graduationproject.ui.theme.GraduationProjectTheme
 import com.example.graduationproject.ui.theme.LocalFontScale
 import kotlinx.coroutines.launch
 import android.content.Context
+import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
+import com.google.mediapipe.examples.poselandmarker.MainActivity as CameraActivity
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +87,14 @@ fun AppNavigation(userViewModel: UserViewModel = viewModel()) {
                 },
                 onNavigateToSurvey = {
                     navController.navigate("survey")
+                },
+                onStartTraining = { exerciseId ->
+                    val intent = Intent(context, CameraActivity::class.java)
+                    val targetFragment = exerciseId?.let(::resolveCameraFragment)
+                    if (targetFragment != null) {
+                        intent.putExtra(CameraActivity.EXTRA_TARGET_FRAGMENT, targetFragment)
+                    }
+                    context.startActivity(intent)
                 }
             )
         }
@@ -144,5 +154,43 @@ fun AppNavigation(userViewModel: UserViewModel = viewModel()) {
                 }
             )
         }
+    }
+}
+
+private const val CAMERA_FRAGMENT_HOME = "home_fragment"
+private const val CAMERA_FRAGMENT_STRETCH = "stretch_fragment"
+private const val CAMERA_FRAGMENT_CHAIR_STAND = "chair_stand_fragment"
+private const val CAMERA_FRAGMENT_WALKING = "walking_fragment"
+private const val CAMERA_FRAGMENT_SIMULATED_SITTING = "simulated_sitting_fragment"
+private const val CAMERA_FRAGMENT_TOE_HEEL_WALKING = "toe_heel_walking_fragment"
+private const val CAMERA_FRAGMENT_CHAIR_ARM_STRETCH = "chair_arm_stretch_fragment"
+private const val CAMERA_FRAGMENT_OBSTACLE_CROSSING = "obstacle_crossing_fragment"
+private const val CAMERA_FRAGMENT_BOTTLE_LIFT = "bottle_lift_fragment"
+private const val CAMERA_FRAGMENT_SQUEEZE_BALL = "squeeze_ball_fragment"
+private const val CAMERA_FRAGMENT_WRING_TOWEL = "wring_towel_fragment"
+private const val CAMERA_FRAGMENT_BALANCE_TEST = "balance_test_fragment"
+private const val CAMERA_FRAGMENT_FIGURE8_WALKING = "figure8_walking_fragment"
+private const val CAMERA_FRAGMENT_LEG_STRETCH = "leg_stretch_fragment"
+private const val CAMERA_FRAGMENT_WEIGHTED_LEG_STRETCH = "weighted_leg_stretch_fragment"
+private const val CAMERA_FRAGMENT_STAIR_CLIMBING = "stair_climbing_fragment"
+
+private fun resolveCameraFragment(exerciseId: String): String? {
+    return when (exerciseId) {
+        "A1", "A6", "B7", "C8", "D9" -> CAMERA_FRAGMENT_WALKING
+        "A2", "B2" -> CAMERA_FRAGMENT_SQUEEZE_BALL
+        "A3", "B1", "C2", "D2" -> CAMERA_FRAGMENT_BOTTLE_LIFT
+        "A4" -> CAMERA_FRAGMENT_WEIGHTED_LEG_STRETCH
+        "A5", "C3", "D3" -> CAMERA_FRAGMENT_CHAIR_STAND
+        "A7", "B6", "C7", "D7" -> CAMERA_FRAGMENT_STRETCH
+        "B3" -> CAMERA_FRAGMENT_SIMULATED_SITTING
+        "B4" -> CAMERA_FRAGMENT_TOE_HEEL_WALKING
+        "B5" -> CAMERA_FRAGMENT_CHAIR_ARM_STRETCH
+        "C1", "D1" -> CAMERA_FRAGMENT_WRING_TOWEL
+        "C4" -> CAMERA_FRAGMENT_OBSTACLE_CROSSING
+        "C5", "D6" -> CAMERA_FRAGMENT_FIGURE8_WALKING
+        "C6", "D8" -> CAMERA_FRAGMENT_LEG_STRETCH
+        "D4" -> CAMERA_FRAGMENT_STAIR_CLIMBING
+        "D5" -> CAMERA_FRAGMENT_WALKING
+        else -> CAMERA_FRAGMENT_HOME
     }
 }

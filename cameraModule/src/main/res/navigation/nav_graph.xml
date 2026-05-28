@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ~ Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+    ~
+    ~ Licensed under the Apache License, Version 2.0 (the "License");
+    ~ you may not use this file except in compliance with the License.
+    ~ You may obtain a copy of the License at
+    ~
+    ~       http://www.apache.org/licenses/LICENSE-2.0
+    ~
+    ~ Unless required by applicable law or agreed to in writing, software
+    ~ distributed under the License is distributed on an "AS IS" BASIS,
+    ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    ~ See the License for the specific language governing permissions and
+    ~ limitations under the License.
+-->
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/permissions_fragment">
+
+    <fragment
+        android:id="@+id/permissions_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.PermissionsFragment"
+        android:label="PermissionsFragment">
+
+        <action
+            android:id="@+id/action_permissions_to_home"
+            app:destination="@id/home_fragment"
+            app:popUpTo="@id/permissions_fragment"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/home_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.HomeFragment"
+        android:label="HomeFragment">
+
+        <action
+            android:id="@+id/action_home_to_camera"
+            app:destination="@id/camera_fragment" />
+        <action
+            android:id="@+id/action_home_to_stretch"
+            app:destination="@id/stretch_fragment" />
+        <action
+            android:id="@+id/action_home_to_chair_stand"
+            app:destination="@id/chair_stand_fragment" />
+        <action
+            android:id="@+id/action_home_to_walking"
+            app:destination="@id/walking_fragment" />
+        <action
+            android:id="@+id/action_home_to_walking_b"
+            app:destination="@id/walking_b_fragment" />
+        <action
+            android:id="@+id/action_home_to_walking_c"
+            app:destination="@id/walking_c_fragment" />
+        <action
+            android:id="@+id/action_home_to_walking_d"
+            app:destination="@id/walking_d_fragment" />
+        <action
+            android:id="@+id/action_home_to_walking_d_week7"
+            app:destination="@id/walking_d_week7_fragment" />
+        <action
+            android:id="@+id/action_home_to_walking_b_week7"
+            app:destination="@id/walking_b_week7_fragment" />
+        <action
+            android:id="@+id/action_home_to_walking_c_week7"
+            app:destination="@id/walking_c_week7_fragment" />
+        <action
+            android:id="@+id/action_home_to_simulated_sitting"
+            app:destination="@id/simulated_sitting_fragment" />
+        <action
+            android:id="@+id/action_home_to_toe_heel_walking"
+            app:destination="@id/toe_heel_walking_fragment" />
+        <action
+            android:id="@+id/action_home_to_chair_arm_stretch"
+            app:destination="@id/chair_arm_stretch_fragment" />
+        <action
+            android:id="@+id/action_home_to_obstacle_crossing"
+            app:destination="@id/obstacle_crossing_fragment" />
+        <action
+            android:id="@+id/action_home_to_bottle_lift"
+            app:destination="@id/bottle_lift_fragment" />
+        <action
+            android:id="@+id/action_home_to_squeeze_ball"
+            app:destination="@id/squeeze_ball_fragment" />
+        <action
+            android:id="@+id/action_home_to_wring_towel"
+            app:destination="@id/wring_towel_fragment" />
+        <action
+            android:id="@+id/action_home_to_balance_test"
+            app:destination="@id/balance_test_fragment" />
+        <action
+            android:id="@+id/action_home_to_gait_speed_4m"
+            app:destination="@id/gait_speed_4m_fragment" />
+        <action
+            android:id="@+id/action_home_to_five_times_chair_stand"
+            app:destination="@id/five_times_chair_stand_fragment" />
+        <action
+            android:id="@+id/action_home_to_timed_up_and_go"
+            app:destination="@id/timed_up_and_go_fragment" />
+        <action
+            android:id="@+id/action_home_to_gait_speed_6m"
+            app:destination="@id/gait_speed_6m_fragment" />
+        <action
+            android:id="@+id/action_home_to_figure8_walking"
+            app:destination="@id/figure8_walking_fragment" />
+        <action
+            android:id="@+id/action_home_to_leg_stretch"
+            app:destination="@id/leg_stretch_fragment" />
+        <action
+            android:id="@+id/action_home_to_weighted_leg_stretch"
+            app:destination="@id/weighted_leg_stretch_fragment" />
+        <action
+            android:id="@+id/action_home_to_stair_climbing"
+            app:destination="@id/stair_climbing_fragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/stair_climbing_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.StairClimbingFragment"
+        android:label="StairClimbingFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/weighted_leg_stretch_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.WeightedLegStretchFragment"
+        android:label="WeightedLegStretchFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/leg_stretch_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.LegStretchFragment"
+        android:label="LegStretchFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/figure8_walking_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.Figure8WalkingFragment"
+        android:label="Figure8WalkingFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/squeeze_ball_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.SqueezeBallFragment"
+        android:label="SqueezeBallFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/wring_towel_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.WringTowelFragment"
+        android:label="WringTowelFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/balance_test_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.BalanceTestFragment"
+        android:label="BalanceTestFragment" />
+
+    <fragment
+        android:id="@+id/gait_speed_4m_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.GaitSpeed4mFragment"
+        android:label="GaitSpeed4mFragment" />
+
+    <fragment
+        android:id="@+id/five_times_chair_stand_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.FiveTimesChairStandFragment"
+        android:label="FiveTimesChairStandFragment" />
+
+    <fragment
+        android:id="@+id/timed_up_and_go_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.TimedUpAndGoFragment"
+        android:label="TimedUpAndGoFragment" />
+
+    <fragment
+        android:id="@+id/gait_speed_6m_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.GaitSpeed6mFragment"
+        android:label="GaitSpeed6mFragment" />
+
+    <fragment
+        android:id="@+id/camera_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.CameraFragment"
+        android:label="CameraFragment">
+
+        <action
+            android:id="@+id/action_camera_to_permissions"
+            app:destination="@id/permissions_fragment"
+            app:popUpTo="@id/camera_fragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/stretch_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.StretchFragment"
+        android:label="StretchFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/chair_stand_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.ChairStandFragment"
+        android:label="ChairStandFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/walking_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.WalkingFragment"
+        android:label="WalkingFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/walking_b_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.WalkingBFragment"
+        android:label="WalkingBFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/walking_c_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.WalkingCFragment"
+        android:label="WalkingCFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/walking_d_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.WalkingDFragment"
+        android:label="WalkingDFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/simulated_sitting_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.SimulatedSittingFragment"
+        android:label="SimulatedSittingFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/toe_heel_walking_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.ToeHeelWalkingFragment"
+        android:label="ToeHeelWalkingFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/chair_arm_stretch_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.ChairArmStretchFragment"
+        android:label="ChairArmStretchFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/obstacle_crossing_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.ObstacleCrossingFragment"
+        android:label="ObstacleCrossingFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/bottle_lift_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.BottleLiftFragment"
+        android:label="BottleLiftFragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/walking_b_week7_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.WalkingBWeek7Fragment"
+        android:label="WalkingBWeek7Fragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/walking_c_week7_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.WalkingCWeek7Fragment"
+        android:label="WalkingCWeek7Fragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/walking_d_week7_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.WalkingDWeek7Fragment"
+        android:label="WalkingDWeek7Fragment">
+    </fragment>
+
+    <fragment
+        android:id="@+id/gallery_fragment"
+        android:name="com.google.mediapipe.examples.poselandmarker.fragment.GalleryFragment"
+        android:label="GalleryFragment" />
+</navigation>

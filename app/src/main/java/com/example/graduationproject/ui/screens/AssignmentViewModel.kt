@@ -25,11 +25,12 @@ class AssignmentViewModel(
 
     private val _level = MutableStateFlow<String?>(null)
     private val _day = MutableStateFlow(1)
+    private val _week = MutableStateFlow(1)
     private val _completedIds = MutableStateFlow<Set<String>>(emptySet())
 
     // 核心邏輯：只要等級、天數或完成狀態任一改變，立即重新計算 exercises
-    val uiState: StateFlow<AssignmentUiState> = combine(_level, _day, _completedIds) { level, day, completedIds ->
-        val plan = if (level != null) repository.getDailyPlan(level, day) else null
+    val uiState: StateFlow<AssignmentUiState> = combine(_level, _day, _week, _completedIds) { level, day, week, completedIds ->
+        val plan = if (level != null) repository.getDailyPlan(level, day, week) else null
         val processedExercises = plan?.exercises?.let { list ->
             var foundCurrent = false
             list.map { exercise ->
@@ -56,11 +57,12 @@ class AssignmentViewModel(
     )
 
     /**
-     * 更新目前的訓練等級與天數
+     * 更新目前的訓練等級、天數與週次
      */
-    fun updateParams(level: String, day: Int) {
+    fun updateParams(level: String, day: Int, week: Int = 1) {
         _level.value = level
         _day.value = day
+        _week.value = week
     }
 
     fun completeExercise(id: String) {
