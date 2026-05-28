@@ -176,15 +176,28 @@ private const val CAMERA_FRAGMENT_STAIR_CLIMBING = "stair_climbing_fragment"
 
 private fun resolveCameraFragment(exerciseId: String): String? {
     return when (exerciseId) {
+
+        // 修改B1~7
+
+        //"A3", "B1", "C2", "D2" -> CAMERA_FRAGMENT_BOTTLE_LIFT
+        //"A7", "B6", "C7", "D7" -> CAMERA_FRAGMENT_STRETCH
+
         "A1", "A6", "B7", "C8", "D9" -> CAMERA_FRAGMENT_WALKING
-        "A2", "B2" -> CAMERA_FRAGMENT_SQUEEZE_BALL
-        "A3", "B1", "C2", "D2" -> CAMERA_FRAGMENT_BOTTLE_LIFT
+
+
+        "B1", "A7",  "C7", "D7" -> CAMERA_FRAGMENT_STRETCH
+        "B2" -> CAMERA_FRAGMENT_SIMULATED_SITTING
+        "B3" -> CAMERA_FRAGMENT_CHAIR_ARM_STRETCH
+        "B4", "A3", "C2", "D2" -> CAMERA_FRAGMENT_BOTTLE_LIFT
+        "B5" -> CAMERA_FRAGMENT_SQUEEZE_BALL
+        "B6" -> CAMERA_FRAGMENT_TOE_HEEL_WALKING
+
+
         "A4" -> CAMERA_FRAGMENT_WEIGHTED_LEG_STRETCH
         "A5", "C3", "D3" -> CAMERA_FRAGMENT_CHAIR_STAND
-        "A7", "B6", "C7", "D7" -> CAMERA_FRAGMENT_STRETCH
-        "B3" -> CAMERA_FRAGMENT_SIMULATED_SITTING
-        "B4" -> CAMERA_FRAGMENT_TOE_HEEL_WALKING
-        "B5" -> CAMERA_FRAGMENT_CHAIR_ARM_STRETCH
+        
+
+
         "C1", "D1" -> CAMERA_FRAGMENT_WRING_TOWEL
         "C4" -> CAMERA_FRAGMENT_OBSTACLE_CROSSING
         "C5", "D6" -> CAMERA_FRAGMENT_FIGURE8_WALKING

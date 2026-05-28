@@ -266,7 +266,7 @@ fun DashboardContent(currentPoints: Int,isSurveyComplete: Boolean, onNavigateToS
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "目前進度：第 2 週",
+                        text = "目前進度：第 1 週",
                         fontSize = 18.scaledSp(),
                         fontWeight = FontWeight.Bold,
                         color = SecondaryTeal
@@ -412,7 +412,7 @@ fun StatsFilledCardsRow(currentPoints: Int) {
         FilledCard(
             modifier = Modifier.weight(1f),
             label = "連續訓練",
-            value = "12",
+            value = "1",
             unit = "天",
             containerColor = StatsPastelBlue,
             icon = Icons.Default.Whatshot,
