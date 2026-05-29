@@ -211,11 +211,7 @@ fun DashboardContent(currentPoints: Int,isSurveyComplete: Boolean, onNavigateToS
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.fit_care_logo),
-                    contentDescription = "App Logo",
-                    modifier = Modifier.size(120.dp)
-                )
+
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(
                     modifier = Modifier.weight(1f),
