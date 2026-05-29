@@ -1,6 +1,8 @@
 package com.example.graduationproject.ui.screens
 
+import com.example.graduationproject.R
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -203,18 +206,29 @@ fun DashboardContent(currentPoints: Int,isSurveyComplete: Boolean, onNavigateToS
         contentPadding = PaddingValues(top = 8.dp, bottom = 140.dp)
     ) {
         item {
-            Column {
-                Text(
-                    text = "早安，陳爺爺！",
-                    fontSize = 32.scaledSp(),
-                    fontWeight = FontWeight.ExtraBold,
-                    color = TextMain
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.fit_care_logo),
+                    contentDescription = "App Logo",
+                    modifier = Modifier.size(120.dp)
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
                 Column(
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
+                    Text(
+                        text = "早安，陳爺爺！",
+                        fontSize = 32.scaledSp(),
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextMain
+                    )
+
                     Surface(
                         color = SecondaryTeal,
                         shape = RoundedCornerShape(12.dp)

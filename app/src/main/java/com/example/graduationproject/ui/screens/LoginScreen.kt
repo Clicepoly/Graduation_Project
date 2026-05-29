@@ -158,7 +158,8 @@ fun LoginScreen(
                                     username = account,
                                     password = password
                                 )
-                                /*val response = com.example.graduationproject.api.ApiClient.apiService.login(loginRequest)
+                                ///*
+                                val response = com.example.graduationproject.api.ApiClient.apiService.login(loginRequest)
 
                                 if (response.isSuccessful && response.body()?.success == true) {
                                     val body = response.body()!!
@@ -167,12 +168,15 @@ fun LoginScreen(
 
                                     onLoginSuccess(safeRole, realAccountId)
                                 }
-                                因要測試介面，故API呼叫先註解掉，若需要執行資料庫，則將註解取消*/
+                                //因要測試介面，故API呼叫先註解掉，若需要執行資料庫，則將註解取消
+                                //*/
+                                /*
                                 if (account == "admin") { /*管理者直接登入，帳號、密碼皆為：admin*/
                                     onLoginSuccess("elder", 1)
                                 } else {
                                     errorMessage = "請輸入 admin 進行測試"
                                 }
+                                */
 
 
                             } catch (e: Exception) {
