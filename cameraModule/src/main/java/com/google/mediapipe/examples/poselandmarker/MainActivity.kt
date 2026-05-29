@@ -16,6 +16,7 @@
 
 package com.google.mediapipe.examples.poselandmarker
 
+import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -25,6 +26,8 @@ import com.google.mediapipe.examples.poselandmarker.databinding.ActivityMainBind
 import com.google.mediapipe.examples.poselandmarker.fragment.PermissionsFragment
 
 class MainActivity : AppCompatActivity() {
+
+    private var launchedFromTargetFragment = false
 
     companion object {
         const val EXTRA_TARGET_FRAGMENT = "extra_target_fragment"
@@ -62,6 +65,7 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         val navController = navHostFragment.navController
         val targetFragment = intent.getStringExtra(EXTRA_TARGET_FRAGMENT)
+        launchedFromTargetFragment = targetFragment != null
         val startDestination = targetFragment?.let(::resolveTargetDestination)
             ?.takeIf { PermissionsFragment.hasPermissions(this) }
             ?: R.id.permissions_fragment
@@ -69,6 +73,13 @@ class MainActivity : AppCompatActivity() {
         val navGraph = navController.navInflater.inflate(R.navigation.nav_graph)
         navGraph.setStartDestination(startDestination)
         navController.graph = navGraph
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            if (launchedFromTargetFragment && destination.id == R.id.home_fragment) {
+                setResult(Activity.RESULT_OK)
+                finish()
+                overridePendingTransition(0, 0)
+            }
+        }
         activityMainBinding.navigation.setupWithNavController(navController)
         activityMainBinding.navigation.setOnNavigationItemReselectedListener {
             // ignore the reselection
@@ -76,6 +87,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        setResult(Activity.RESULT_CANCELED)
         finish()
+        overridePendingTransition(0, 0)
     }
 }

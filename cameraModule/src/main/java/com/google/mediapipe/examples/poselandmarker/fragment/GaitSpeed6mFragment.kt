@@ -81,7 +81,7 @@ class GaitSpeed6mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
         binding.btnDialogNext.setOnClickListener {
             binding.dialogLayout.visibility = View.GONE
             if (testCount >= 2 || binding.btnDialogNext.text == "結束") {
-                findNavController().navigateUp()
+                returnFromTraining(useNavigateUp = true)
             } else {
                 resetForNextTrial(false)
             }

@@ -3,6 +3,7 @@ package com.google.mediapipe.examples.poselandmarker.fragment
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Matrix
+
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.SystemClock
@@ -164,7 +165,7 @@ class CameraFragment : Fragment() {
         }
 
         fragmentCameraBinding.btnFinish.setOnClickListener {
-            findNavController().navigate(R.id.home_fragment)
+            returnFromTraining()
         }
 
         fragmentCameraBinding.fabSwitchCamera.setOnClickListener {

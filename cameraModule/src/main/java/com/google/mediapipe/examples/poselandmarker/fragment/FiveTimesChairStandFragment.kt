@@ -70,7 +70,7 @@ class FiveTimesChairStandFragment : Fragment(), PoseLandmarkerHelper.LandmarkerL
         }
 
         binding.btnDialogOk.setOnClickListener {
-            findNavController().navigateUp()
+            returnFromTraining(useNavigateUp = true)
         }
 
         binding.fabSwitchCamera.setOnClickListener {

@@ -119,7 +119,7 @@ class WalkingDWeek7Fragment : Fragment(), PoseLandmarkerHelper.LandmarkerListene
         }
 
         binding.btnFinish.setOnClickListener {
-            findNavController().navigate(R.id.home_fragment)
+            returnFromTraining()
         }
 
         binding.fabSwitchCamera.setOnClickListener {

@@ -50,10 +50,10 @@ class StretchFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
     companion object {
         private const val TAG = "StretchFragment"
-        private const val HOLD_TIME_MS = 10000L // 維持 10 秒
-        private const val RELAX_TIME_MS = 5000L // 放鬆 5 秒
+        private const val HOLD_TIME_MS = 5000L // 維持 10 秒
+        private const val RELAX_TIME_MS = 3000L // 放鬆 5 秒
         private const val TOTAL_REPS_PER_SET = 3
-        private const val TOTAL_SETS = 3
+        private const val TOTAL_SETS = 1 // 3
         private const val SET_REST_TIME_MS = 30000L
         private const val ANGLE_THRESHOLD = 150.0 // 手臂拉直角度門檻
         private const val VISIBILITY_THRESHOLD = 0.5f
@@ -117,7 +117,7 @@ class StretchFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         }
         
         binding.btnFinish.setOnClickListener {
-            findNavController().navigate(R.id.home_fragment)
+            returnFromTraining()
         }
 
         binding.fabSwitchCamera.setOnClickListener {

@@ -82,7 +82,7 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
         binding.btnDialogOk.setOnClickListener {
             binding.dialogLayout.visibility = View.GONE
             if (currentStage == TestStage.COMPLETED) {
-                findNavController().navigateUp()
+                returnFromTraining(useNavigateUp = true)
             } else {
                 startInitialPreparation()
             }

@@ -1,5 +1,7 @@
 package com.example.graduationproject.ui.screens
 
+import android.app.Activity
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeOut
@@ -23,14 +25,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.graduationproject.DataClass.Exercise
 import com.example.graduationproject.DataClass.ExerciseStatus
 import com.example.graduationproject.ui.components.ScaleButton
 import com.example.graduationproject.ui.theme.GraduationProjectTheme
 import com.example.graduationproject.ui.theme.scaledSp
+import com.google.mediapipe.examples.poselandmarker.MainActivity as CameraActivity
 
 // 顏色定義保持一致
 private val BeigeBg = Color(0xFFFDFCF9)
@@ -51,6 +57,7 @@ fun AssignmentScreen(
     viewModel: AssignmentViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     val baseLevel = userLevel.take(1).uppercase()
     val safeDay = currentDay.coerceIn(1, 5)
     val safeWeek = currentWeek.coerceIn(1, 12)
@@ -61,6 +68,40 @@ fun AssignmentScreen(
     }
 
     var isBannerVisible by rememberSaveable { mutableStateOf(false) }
+    var pendingExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val trainingLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val completedExerciseId = pendingExerciseId
+        pendingExerciseId = null
+
+        if (result.resultCode == Activity.RESULT_OK && completedExerciseId != null) {
+            viewModel.completeExercise(completedExerciseId)
+        }
+    }
+
+    fun resolveCameraFragment(exerciseId: String): String? {
+        return when (exerciseId) {
+            "A1", "A6", "B7", "C8", "D9" -> "walking_fragment"
+            "B1", "A7", "C7", "D7" -> "stretch_fragment"
+            "B2" -> "simulated_sitting_fragment"
+            "B3" -> "chair_arm_stretch_fragment"
+            "B4", "A3", "C2", "D2" -> "bottle_lift_fragment"
+            "B5" -> "squeeze_ball_fragment"
+            "B6" -> "toe_heel_walking_fragment"
+            "A4" -> "weighted_leg_stretch_fragment"
+            "A5", "C3", "D3" -> "chair_stand_fragment"
+            "C1", "D1" -> "wring_towel_fragment"
+            "C4" -> "obstacle_crossing_fragment"
+            "C5", "D6" -> "figure8_walking_fragment"
+            "C6", "D8" -> "leg_stretch_fragment"
+            "D4" -> "stair_climbing_fragment"
+            "D5" -> "walking_fragment"
+            else -> null
+        }
+    }
+
     LaunchedEffect(isSurveyComplete) {
         if (isSurveyComplete) {
             isBannerVisible = true
@@ -140,7 +181,16 @@ fun AssignmentScreen(
                     items(uiState.exercises, key = { it.id }) { exercise ->
                         ExerciseCard(
                             exercise = exercise,
-                            onStartClick = { onStartTraining(exercise.id);viewModel.completeExercise(exercise.id) }
+                            onStartClick = {
+                                pendingExerciseId = exercise.id
+
+                                val intent = Intent(context, CameraActivity::class.java)
+                                val targetFragment = resolveCameraFragment(exercise.id)
+                                if (targetFragment != null) {
+                                    intent.putExtra(CameraActivity.EXTRA_TARGET_FRAGMENT, targetFragment)
+                                }
+                                trainingLauncher.launch(intent)
+                            }
                         )
                     }
                 }

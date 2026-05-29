@@ -117,7 +117,7 @@ class WringTowelFragment : Fragment() {
         }
 
         binding.btnFinish.setOnClickListener {
-            findNavController().navigate(R.id.home_fragment)
+            returnFromTraining()
         }
 
         binding.fabSwitchCamera.setOnClickListener {

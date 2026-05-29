@@ -93,7 +93,7 @@ class TimedUpAndGoFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener
 
         binding.btnDialogOk.setOnClickListener {
             binding.dialogLayout.visibility = View.GONE
-            findNavController().navigateUp()
+            returnFromTraining(useNavigateUp = true)
         }
 
         binding.fabSwitchCamera.setOnClickListener {
