@@ -177,6 +177,11 @@ class FiveTimesChairStandFragment : Fragment(), PoseLandmarkerHelper.LandmarkerL
         }
         binding.dialogLayout.visibility = View.VISIBLE
         binding.tvDialogResult.text = String.format(Locale.US, "完成時間: %.2fs\n獲得 %d 分", duration, score)
+        com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+            requireActivity(),
+            duration,
+            "5次起身測試：${String.format(Locale.US, "%.2f", duration)}秒，得分 $score"
+        )
     }
 
     override fun onError(error: String, errorCode: Int) { Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show() }

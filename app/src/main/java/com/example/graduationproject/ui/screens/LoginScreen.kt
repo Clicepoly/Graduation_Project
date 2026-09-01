@@ -195,14 +195,8 @@ fun LoginScreen(
 
                                     onLoginSuccess(safeRole, realAccountId)
                                 } else {
-                                    /*
-                                    /*因要測試介面，故API呼叫先註解掉，若需要執行資料庫，則將註解取消*/
-                                    if (account == "admin") { /*管理者直接登入，帳號、密碼皆為：admin*/
-                                        onLoginSuccess("elder", 1)
-                                    } else {
-                                        errorMessage = "請輸入 admin 進行測試"
-                                    }
-                                    */
+
+
                                     val realErrorMessage = try {
                                         val errorStr = response.errorBody()?.string()
                                             ?: response.body()?.message
@@ -211,14 +205,24 @@ fun LoginScreen(
                                             com.example.graduationproject.DataClass.CommonResponse::class.java
                                         )
                                         errorObj.message
+
                                     } catch (e: Exception) {
                                         null
                                     }
                                     errorMessage = realErrorMessage ?: "帳號或密碼錯誤"
+
                                 }
                             } catch (e: Exception) {
                                 Log.e("LoginError", "連線失敗的真正原因：", e)
                                 errorMessage = "網路連線失敗，請檢查網路"
+                                ///*
+                                /*因要測試介面，故API呼叫先註解掉，若需要執行資料庫，則將註解取消*/
+                                if (account == "admin") { /*管理者直接登入，帳號、密碼皆為：admin*/
+                                    onLoginSuccess("elder", 1)
+                                } else {
+                                    errorMessage = "請輸入 admin 進行測試"
+                                }
+                                //*/
                             } finally {
                                 isLoading = false
                             }

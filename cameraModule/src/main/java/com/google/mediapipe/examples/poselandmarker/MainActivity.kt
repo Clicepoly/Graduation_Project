@@ -16,6 +16,8 @@
 
 package com.google.mediapipe.examples.poselandmarker
 
+import android.app.Activity
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -28,6 +30,21 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_TARGET_FRAGMENT = "extra_target_fragment"
+        const val EXTRA_RESULT_VALUE = "extra_result_value"
+        const val EXTRA_RESULT_MESSAGE = "extra_result_message"
+        const val EXTRA_RESULT_STAGE_VALUES = "extra_result_stage_values"
+
+        fun finishWithResult(activity: Activity, value: Float, message: String, stageValues: List<Float> = emptyList()) {
+            val intent = Intent().apply {
+                putExtra(EXTRA_RESULT_VALUE, value)
+                putExtra(EXTRA_RESULT_MESSAGE, message)
+                if (stageValues.isNotEmpty()) {
+                    putExtra(EXTRA_RESULT_STAGE_VALUES, stageValues.joinToString(","))
+                }
+            }
+            activity.setResult(Activity.RESULT_OK, intent)
+            activity.finish()
+        }
 
         fun resolveTargetDestination(targetFragment: String): Int? {
             return when (targetFragment) {
@@ -43,6 +60,10 @@ class MainActivity : AppCompatActivity() {
                 "squeeze_ball_fragment" -> R.id.squeeze_ball_fragment
                 "wring_towel_fragment" -> R.id.wring_towel_fragment
                 "balance_test_fragment" -> R.id.balance_test_fragment
+                "gait_speed_4m_fragment" -> R.id.gait_speed_4m_fragment
+                "five_times_chair_stand_fragment" -> R.id.five_times_chair_stand_fragment
+                "timed_up_and_go_fragment" -> R.id.timed_up_and_go_fragment
+                "gait_speed_6m_fragment" -> R.id.gait_speed_6m_fragment
                 "figure8_walking_fragment" -> R.id.figure8_walking_fragment
                 "leg_stretch_fragment" -> R.id.leg_stretch_fragment
                 "weighted_leg_stretch_fragment" -> R.id.weighted_leg_stretch_fragment

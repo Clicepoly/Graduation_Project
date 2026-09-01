@@ -237,6 +237,15 @@ class GaitSpeed4mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
         binding.tvResultMsg.text = String.format(Locale.US, "本次時間: %.2fs\n最短時間: %.2fs\n目前最高分: %d分", duration, bestTime, bestScore)
         binding.btnDialogNext.text = if (testCount < 3 && score > 0) "進行第${testCount + 1}次測試" else "結束"
         if (score == 0) binding.tvResultMsg.text = "獲得 0 分"
+
+        if (binding.btnDialogNext.text == "結束" || testCount >= 3) {
+            val finalMessage = "4公尺步行速度測試：${String.format(Locale.US, "%.2f", duration)}秒，得分 $score"
+            com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+                requireActivity(),
+                duration,
+                finalMessage
+            )
+        }
     }
 
     private fun resetForNextTrial(askHeight: Boolean) {

@@ -221,6 +221,12 @@ class GaitSpeed6mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
             binding.dialogLayout.visibility = View.VISIBLE
             binding.tvResultMsg.text = "無法執行 (未獲得分數)"
             binding.btnDialogNext.text = "結束"
+            val message = "6公尺步行速度測試無法執行"
+            com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+                requireActivity(),
+                0f,
+                message
+            )
             return
         }
 
@@ -228,9 +234,17 @@ class GaitSpeed6mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
         if (duration < bestTime) bestTime = duration
 
         val resultText = if (bestTime > 7.5f) "超過 7.5 秒 (須注意風險)" else "未超過 7.5 秒 (良好)"
+        val message = "6公尺步行速度測試：${String.format(Locale.US, "%.2f", duration)}秒，結果: $resultText"
+
         binding.dialogLayout.visibility = View.VISIBLE
         binding.tvResultMsg.text = String.format(Locale.US, "本次時間: %.2fs\n最短時間: %.2fs\n結果: %s", duration, bestTime, resultText)
         binding.btnDialogNext.text = if (testCount < 2) "進行下一次測試" else "結束"
+
+        com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+            requireActivity(),
+            bestTime,
+            message
+        )
     }
 
     private fun resetForNextTrial(askHeight: Boolean) {

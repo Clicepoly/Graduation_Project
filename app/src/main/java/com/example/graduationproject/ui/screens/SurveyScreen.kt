@@ -1,6 +1,12 @@
 package com.example.graduationproject.ui.screens
 
+import android.app.Activity
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.graduationproject.ui.theme.GraduationProjectTheme
 import com.example.graduationproject.ui.theme.scaledSp
+import com.google.mediapipe.examples.poselandmarker.MainActivity as CameraActivity
 
 private val BeigeBg = Color(0xFFFDFCF9)
 private val PrimaryPeach = Color(0xFFFF8A65)
@@ -32,6 +40,39 @@ fun SurveyScreen(
     viewModel: SurveyViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val scoreValue = result.data?.getFloatExtra(CameraActivity.EXTRA_RESULT_VALUE, 0f) ?: 0f
+            val resultLabel = result.data?.getStringExtra(CameraActivity.EXTRA_RESULT_MESSAGE)
+                ?: "本次測試"
+            val stageValues = result.data?.getStringExtra(CameraActivity.EXTRA_RESULT_STAGE_VALUES)
+                ?.split(",")
+                ?.mapNotNull { it.toFloatOrNull() }
+                ?: emptyList()
+            viewModel.submitCameraMeasurement(scoreValue, resultLabel, stageValues)
+        }
+    }
+
+    val launchCurrentCamera = {
+        val target = when (viewModel.currentStep) {
+            SurveyStep.Sppb1A, SurveyStep.Sppb1B, SurveyStep.Sppb1C -> "balance_test_fragment"
+            SurveyStep.Sppb2 -> "gait_speed_4m_fragment"
+            SurveyStep.Sppb3 -> "five_times_chair_stand_fragment"
+            SurveyStep.FallRisk2 -> "timed_up_and_go_fragment"
+            SurveyStep.FallRisk3 -> "gait_speed_6m_fragment"
+            else -> null
+        }
+
+        if (target != null) {
+            val intent = Intent(context, CameraActivity::class.java).apply {
+                putExtra(CameraActivity.EXTRA_TARGET_FRAGMENT, target)
+            }
+            cameraLauncher.launch(intent)
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -48,7 +89,16 @@ fun SurveyScreen(
             AssessmentContent(
                 viewModel = viewModel,
                 uiState = uiState,
-                onBack = onNavigateBack
+                onBack = onNavigateBack,
+                onLaunchCamera = {
+                    if (!uiState.isStartEnabled) return@AssessmentContent
+                    viewModel.startCameraTest()
+                    launchCurrentCamera()
+                },
+                onRetakeCamera = {
+                    viewModel.retakeCurrentCameraTest()
+                    viewModel.retakeCurrentMeasurement()
+                }
             )
         }
     }
@@ -58,9 +108,22 @@ fun SurveyScreen(
 fun AssessmentContent(
     viewModel: SurveyViewModel,
     uiState: SurveyUiState,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onLaunchCamera: () -> Unit,
+    onRetakeCamera: () -> Unit
 ) {
     val step = viewModel.currentStep
+    val isSppbDebugStep = when (step) {
+        SurveyStep.Sppb1A,
+        SurveyStep.Sppb1B,
+        SurveyStep.Sppb1C,
+        SurveyStep.Sppb2,
+        SurveyStep.Sppb3,
+        SurveyStep.FallRisk2,
+        SurveyStep.FallRisk3 -> true
+        else -> false
+    }
+    val usesCameraThresholdQuestion = step == SurveyStep.FallRisk2 || step == SurveyStep.FallRisk3
 
     Column(
         modifier = Modifier
@@ -89,8 +152,10 @@ fun AssessmentContent(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Column(
-                modifier = Modifier.padding(28.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.Start
             ) {
                 Text(
                     text = step.title,
@@ -98,15 +163,54 @@ fun AssessmentContent(
                     color = PrimaryPeach,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = step.description,
                     fontSize = 24.scaledSp(),
                     fontWeight = FontWeight.ExtraBold,
                     color = TextMain,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Start,
                     lineHeight = 34.sp
                 )
+            }
+        }
+        //除錯用
+        if (isSppbDebugStep) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F4EE))
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "debug delete this later",
+                        fontSize = 14.scaledSp(),
+                        color = TextMain.copy(alpha = 0.6f),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = uiState.lastMeasurementText.ifEmpty { "未進行測試" },
+                        fontSize = 18.scaledSp(),
+                        color = TextMain,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Start
+                    )
+                    if (uiState.lastMeasurementScore != null) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "成績：${uiState.lastMeasurementScore} 分",
+                            fontSize = 22.scaledSp(),
+                            color = PrimaryPeach,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+                }
             }
         }
 
@@ -118,16 +222,35 @@ fun AssessmentContent(
                 BuiltInStopwatch(
                     time = uiState.timerValue,
                     isRunning = uiState.isTimerRunning,
-                    onStart = viewModel::startTimer,
+                    isStartEnabled = uiState.isStartEnabled,
+                    onStart = onLaunchCamera,
                     onPause = viewModel::pauseTimer,
-                    onReset = viewModel::resetTimer,
-                    onSubmit = viewModel::applyTimerToCurrentStep
+                    onReset = onRetakeCamera,
+                    onSubmit = {
+                        if (usesCameraThresholdQuestion) {
+                            viewModel.submitCurrentCameraDecision()
+                        } else {
+                            viewModel.applyTimerToCurrentStep()
+                        }
+                    }
                 )
             }
             SurveyStep.StepType.YES_NO -> {
-                YesNoOptions(
-                    onSelect = { viewModel.submitValue(it) }
-                )
+                if (usesCameraThresholdQuestion) {
+                    BuiltInStopwatch(
+                        time = uiState.timerValue,
+                        isRunning = uiState.isTimerRunning,
+                        isStartEnabled = uiState.isStartEnabled,
+                        onStart = onLaunchCamera,
+                        onPause = viewModel::pauseTimer,
+                        onReset = onRetakeCamera,
+                        onSubmit = viewModel::submitCurrentCameraDecision
+                    )
+                } else {
+                    YesNoOptions(
+                        onSelect = { viewModel.submitValue(it) }
+                    )
+                }
             }
         }
 
@@ -143,6 +266,7 @@ fun AssessmentContent(
 fun BuiltInStopwatch(
     time: Float,
     isRunning: Boolean,
+    isStartEnabled: Boolean = true,
     onStart: () -> Unit,
     onPause: () -> Unit,
     onReset: () -> Unit,
@@ -152,13 +276,6 @@ fun BuiltInStopwatch(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = String.format("%.1f 秒", time),
-            fontSize = 64.sp,
-            fontWeight = FontWeight.Black,
-            color = TextMain
-        )
-
         Spacer(modifier = Modifier.height(24.dp))
 
         Row(
@@ -167,9 +284,10 @@ fun BuiltInStopwatch(
         ) {
             // 開始/暫停按鈕
             LargeIconButton(
-                onClick = if (isRunning) onPause else onStart,
-                icon = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
-                containerColor = if (isRunning) Color.LightGray else SecondaryTeal
+                onClick = onStart,
+                icon = Icons.Default.PlayArrow,
+                containerColor = SecondaryTeal,
+                enabled = isStartEnabled
             )
 
             // 重置按鈕
@@ -199,13 +317,15 @@ fun BuiltInStopwatch(
 fun LargeIconButton(
     onClick: () -> Unit,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    containerColor: Color
+    containerColor: Color,
+    enabled: Boolean = true
 ) {
     Surface(
-        onClick = onClick,
-        modifier = Modifier.size(80.dp),
+        modifier = Modifier
+            .size(80.dp)
+            .let { if (enabled) it.clickable(onClick = onClick) else it },
         shape = CircleShape,
-        color = containerColor,
+        color = if (enabled) containerColor else Color.LightGray,
         contentColor = Color.White
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -333,6 +453,7 @@ fun ResultContent(
 @Composable
 fun SurveyScreenPreview() {
     GraduationProjectTheme {
+
         //SurveyScreen(onNavigateBack = {}, onComplete = { _, _ -> })
     }
 }

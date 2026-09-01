@@ -59,6 +59,7 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
     private var initialAnklePos: Pair<Float, Float>? = null
     private val MOVEMENT_THRESHOLD = 0.05f
     private var currentSeconds = 0f
+    private val stageTimes = mutableListOf<Float>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentBalanceTestBinding.inflate(inflater, container, false)
@@ -270,26 +271,54 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
     private fun failTest() {
         isTesting = false
         timer?.cancel()
+        val elapsedSeconds = if (currentSeconds > 0f) currentSeconds else 0f
         val score = if (currentStage == TestStage.TANDEM) {
-            // 直線站立特殊判定
-            val elapsed = 10 - (binding.tvTimer.text.toString().filter { it.isDigit() }.toLong())
-            if (elapsed < 3) "0分" else "1分"
+            if (elapsedSeconds < 3f) "0分" else "1分"
         } else {
             "0分"
         }
+        stageTimes.add(elapsedSeconds)
         showResult("獲得 $score")
         currentStage = TestStage.COMPLETED
+        finishBalanceMeasure()
     }
 
     private fun passStage() {
         isTesting = false
         val score = if (currentStage == TestStage.TANDEM) "2分" else "1分"
+        stageTimes.add(currentSeconds)
         showResult("獲得 $score")
         currentStage = when(currentStage) {
             TestStage.SIDE_BY_SIDE -> TestStage.SEMI_TANDEM
             TestStage.SEMI_TANDEM -> TestStage.TANDEM
             else -> TestStage.COMPLETED
         }
+        if (currentStage == TestStage.COMPLETED) {
+            finishBalanceMeasure()
+        }
+    }
+
+    private fun finishBalanceMeasure() {
+        val t1a = stageTimes.getOrElse(0) { 0f }
+        val t1b = stageTimes.getOrElse(1) { 0f }
+        val t1c = stageTimes.getOrElse(2) { 0f }
+
+        var totalScore = 0
+        if (t1a >= 10f) totalScore += 1
+        if (t1b >= 10f) totalScore += 1
+        totalScore += when {
+            t1c >= 10f -> 2
+            t1c >= 3f -> 1
+            else -> 0
+        }
+
+        val message = "平衡測試完成"
+        com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+            requireActivity(),
+            totalScore.toFloat(),
+            message,
+            listOf(t1a, t1b, t1c)
+        )
     }
 
     private fun showResult(text: String) {

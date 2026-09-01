@@ -281,14 +281,27 @@ class TimedUpAndGoFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener
         if (isUnable) {
             binding.dialogLayout.visibility = View.VISIBLE
             binding.tvDialogResult.text = "無法執行 (未獲得分數)"
+            val message = "TUG 測試無法執行"
+            com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+                requireActivity(),
+                0f,
+                message
+            )
             return
         }
 
         val duration = (SystemClock.elapsedRealtime() - startTime) / 1000f
         val resultText = if (duration > 20f) "超過 20 秒" else "未超過 20 秒"
+        val message = "TUG 測試：${String.format(Locale.US, "%.2f", duration)}秒，結果: $resultText"
 
         binding.dialogLayout.visibility = View.VISIBLE
         binding.tvDialogResult.text = String.format(Locale.US, "執行時間: %.2fs\n結果: %s", duration, resultText)
+
+        com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+            requireActivity(),
+            duration,
+            message
+        )
     }
 
     private fun resetForNextTrial(askHeight: Boolean) {

@@ -109,6 +109,9 @@ fun AppNavigation(userViewModel: UserViewModel = viewModel()) {
 
             SurveyScreen(
                 onComplete = { grade, score, hasFallRisk ->
+                    userViewModel.completeSurvey(grade) //comment to run with db
+                    navController.popBackStack()
+
                     coroutineScope.launch {
                         try {
                             val request = com.example.graduationproject.DataClass.SaveAssessmentRequest(
