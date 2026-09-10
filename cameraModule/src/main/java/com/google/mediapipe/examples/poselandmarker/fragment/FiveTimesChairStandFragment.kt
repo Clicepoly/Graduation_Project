@@ -41,6 +41,8 @@ class FiveTimesChairStandFragment : Fragment(), PoseLandmarkerHelper.LandmarkerL
     private var startTime = 0L
     private var isTesting = false
     private var currentSeconds = 0f
+    private var pendingResultValue = 0f
+    private var pendingResultMessage = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentFiveTimesChairStandBinding.inflate(inflater, container, false)
@@ -70,7 +72,11 @@ class FiveTimesChairStandFragment : Fragment(), PoseLandmarkerHelper.LandmarkerL
         }
 
         binding.btnDialogOk.setOnClickListener {
-            findNavController().navigateUp()
+            com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+                requireActivity(),
+                pendingResultValue,
+                pendingResultMessage
+            )
         }
 
         binding.fabSwitchCamera.setOnClickListener {
@@ -177,11 +183,8 @@ class FiveTimesChairStandFragment : Fragment(), PoseLandmarkerHelper.LandmarkerL
         }
         binding.dialogLayout.visibility = View.VISIBLE
         binding.tvDialogResult.text = String.format(Locale.US, "完成時間: %.2fs\n獲得 %d 分", duration, score)
-        com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
-            requireActivity(),
-            duration,
-            "5次起身測試：${String.format(Locale.US, "%.2f", duration)}秒，得分 $score"
-        )
+        pendingResultValue = duration
+        pendingResultMessage = "5次起身測試：${String.format(Locale.US, "%.2f", duration)}秒，得分 $score"
     }
 
     override fun onError(error: String, errorCode: Int) { Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show() }

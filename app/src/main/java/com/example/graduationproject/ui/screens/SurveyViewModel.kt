@@ -116,6 +116,11 @@ class SurveyViewModel : ViewModel() {
         submitValue(_uiState.value.timerValue)
     }
 
+    fun submitCurrentCameraMeasurement() {
+        if (_uiState.value.lastMeasurementText.isEmpty()) return
+        submitValue(_uiState.value.lastMeasurementValue)
+    }
+
     private fun thresholdForCurrentStep(): Float = when (currentStep) {
         SurveyStep.FallRisk2 -> 20f
         SurveyStep.FallRisk3 -> 7.5f
@@ -165,6 +170,16 @@ class SurveyViewModel : ViewModel() {
         return score
     }
 
+    private fun scoreForBalanceStage(stage: SurveyStep, seconds: Float): Int = when (stage) {
+        SurveyStep.Sppb1A, SurveyStep.Sppb1B -> if (seconds >= 10f) 1 else 0
+        SurveyStep.Sppb1C -> when {
+            seconds >= 10f -> 2
+            seconds >= 3f -> 1
+            else -> 0
+        }
+        else -> 0
+    }
+
     fun submitCameraMeasurement(value: Float, label: String = "本次測試", stageValues: List<Float> = emptyList()) {
         val currentIndex = _uiState.value.currentStepIndex
         val stageTimes = stageValues.ifEmpty { listOf(value) }
@@ -185,8 +200,7 @@ class SurveyViewModel : ViewModel() {
 
         val stepScore = when {
             currentStep == SurveyStep.Sppb1A && stageTimes.size >= 3 -> scoreForBalanceStages(stageTimes[0], stageTimes[1], stageTimes[2])
-            currentStep == SurveyStep.Sppb1B -> scoreForBalanceStages(inputs[0] as? Float ?: 0f, value, inputs[2] as? Float ?: 0f)
-            currentStep == SurveyStep.Sppb1C -> scoreForBalanceStages(inputs[0] as? Float ?: 0f, inputs[1] as? Float ?: 0f, value)
+            currentStep == SurveyStep.Sppb1A || currentStep == SurveyStep.Sppb1B || currentStep == SurveyStep.Sppb1C -> scoreForBalanceStage(currentStep, value)
             currentStep == SurveyStep.Sppb2 -> scoreForWalkTime(value)
             currentStep == SurveyStep.Sppb3 -> scoreForStandTime(value)
             currentStep == SurveyStep.FallRisk2 -> if (value > 20f) 1 else 0
@@ -200,6 +214,9 @@ class SurveyViewModel : ViewModel() {
                 val t1b = stageTimes[1]
                 val t1c = stageTimes[2]
                 "${label}：1A=${String.format(Locale.US, "%.1f", t1a)}秒，1B=${String.format(Locale.US, "%.1f", t1b)}秒，1C=${String.format(Locale.US, "%.1f", t1c)}秒 → ${stepScore} 分"
+            }
+            currentStep == SurveyStep.Sppb1A || currentStep == SurveyStep.Sppb1B || currentStep == SurveyStep.Sppb1C -> {
+                "${label}：${String.format(Locale.US, "%.1f", value)}秒 → ${stepScore} 分"
             }
             currentStep == SurveyStep.FallRisk2 -> {
                 val aboveThreshold = value > 20f

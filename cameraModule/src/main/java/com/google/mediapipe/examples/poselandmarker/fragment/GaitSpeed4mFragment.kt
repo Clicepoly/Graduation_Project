@@ -48,6 +48,8 @@ class GaitSpeed4mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
     private var bestTime = Float.MAX_VALUE
     private var bestScore = 0
     private var currentSeconds = 0f
+    private var pendingResultValue = 0f
+    private var pendingResultMessage = ""
 
     private var currentState = AutoTestState4m.INPUT_HEIGHT
 
@@ -82,7 +84,11 @@ class GaitSpeed4mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
         binding.btnDialogNext.setOnClickListener {
             binding.dialogLayout.visibility = View.GONE
             if (testCount >= 3 || binding.btnDialogNext.text == "結束") {
-                findNavController().navigateUp()
+                com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+                    requireActivity(),
+                    pendingResultValue,
+                    pendingResultMessage
+                )
             } else {
                 resetForNextTrial(false)
             }
@@ -239,12 +245,8 @@ class GaitSpeed4mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
         if (score == 0) binding.tvResultMsg.text = "獲得 0 分"
 
         if (binding.btnDialogNext.text == "結束" || testCount >= 3) {
-            val finalMessage = "4公尺步行速度測試：${String.format(Locale.US, "%.2f", duration)}秒，得分 $score"
-            com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
-                requireActivity(),
-                duration,
-                finalMessage
-            )
+            pendingResultValue = duration
+            pendingResultMessage = "4公尺步行速度測試：${String.format(Locale.US, "%.2f", duration)}秒，得分 $score"
         }
     }
 

@@ -59,7 +59,9 @@ class MainActivity : AppCompatActivity() {
                 "bottle_lift_fragment" -> R.id.bottle_lift_fragment
                 "squeeze_ball_fragment" -> R.id.squeeze_ball_fragment
                 "wring_towel_fragment" -> R.id.wring_towel_fragment
-                "balance_test_fragment" -> R.id.balance_test_fragment
+                "side_by_side_fragment" -> R.id.side_by_side_fragment
+                "semi_tandem_fragment" -> R.id.semi_tandem_fragment
+                "tandem_fragment" -> R.id.tandem_fragment
                 "gait_speed_4m_fragment" -> R.id.gait_speed_4m_fragment
                 "five_times_chair_stand_fragment" -> R.id.five_times_chair_stand_fragment
                 "timed_up_and_go_fragment" -> R.id.timed_up_and_go_fragment

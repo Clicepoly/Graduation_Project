@@ -47,6 +47,8 @@ class GaitSpeed6mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
     private var startTime = 0L
     private var bestTime = Float.MAX_VALUE
     private var currentSeconds = 0f
+    private var pendingResultValue = 0f
+    private var pendingResultMessage = ""
 
     private var currentState = AutoTestState6m.INPUT_HEIGHT
 
@@ -81,7 +83,11 @@ class GaitSpeed6mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
         binding.btnDialogNext.setOnClickListener {
             binding.dialogLayout.visibility = View.GONE
             if (testCount >= 2 || binding.btnDialogNext.text == "結束") {
-                findNavController().navigateUp()
+                com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+                    requireActivity(),
+                    pendingResultValue,
+                    pendingResultMessage
+                )
             } else {
                 resetForNextTrial(false)
             }
@@ -221,12 +227,8 @@ class GaitSpeed6mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
             binding.dialogLayout.visibility = View.VISIBLE
             binding.tvResultMsg.text = "無法執行 (未獲得分數)"
             binding.btnDialogNext.text = "結束"
-            val message = "6公尺步行速度測試無法執行"
-            com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
-                requireActivity(),
-                0f,
-                message
-            )
+            pendingResultValue = 0f
+            pendingResultMessage = "6公尺步行速度測試無法執行"
             return
         }
 
@@ -239,12 +241,10 @@ class GaitSpeed6mFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
         binding.dialogLayout.visibility = View.VISIBLE
         binding.tvResultMsg.text = String.format(Locale.US, "本次時間: %.2fs\n最短時間: %.2fs\n結果: %s", duration, bestTime, resultText)
         binding.btnDialogNext.text = if (testCount < 2) "進行下一次測試" else "結束"
-
-        com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
-            requireActivity(),
-            bestTime,
-            message
-        )
+        if (testCount >= 2) {
+            pendingResultValue = bestTime
+            pendingResultMessage = message
+        }
     }
 
     private fun resetForNextTrial(askHeight: Boolean) {

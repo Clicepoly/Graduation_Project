@@ -1,16 +1,14 @@
 package com.google.mediapipe.examples.poselandmarker.fragment
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.graphics.Matrix
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.SystemClock
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
@@ -24,9 +22,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.mediapipe.examples.poselandmarker.MainViewModel
 import com.google.mediapipe.examples.poselandmarker.PoseLandmarkerHelper
-import com.google.mediapipe.examples.poselandmarker.R
 import com.google.mediapipe.examples.poselandmarker.databinding.FragmentBalanceTestBinding
-import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import java.util.Locale
@@ -34,10 +30,12 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
 
-class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
+abstract class BaseBalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
+    protected lateinit var tts: TextToSpeech
+    private var lastSpeakTime = 0L
     private var _binding: FragmentBalanceTestBinding? = null
-    private val binding get() = _binding!!
+    protected val binding get() = _binding!!
 
     private lateinit var poseLandmarkerHelper: PoseLandmarkerHelper
     private val viewModel: MainViewModel by activityViewModels()
@@ -49,18 +47,23 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
 
     private lateinit var backgroundExecutor: ExecutorService
 
-    // 測試狀態
-    private enum class TestStage { SIDE_BY_SIDE, SEMI_TANDEM, TANDEM, COMPLETED }
-    private var currentStage = TestStage.SIDE_BY_SIDE
-    private var isTesting = false
-    private var isPreparing = false
-    private var timer: CountDownTimer? = null
-    private var preparationTimer: CountDownTimer? = null
+    // 共用測試狀態
+    protected var isTesting = false
+    protected var timer: CountDownTimer? = null
     private var initialAnklePos: Pair<Float, Float>? = null
     private val MOVEMENT_THRESHOLD = 0.05f
-    private var currentSeconds = 0f
-    private val stageTimes = mutableListOf<Float>()
+    protected var currentSeconds = 0f
+    protected var isTestFinished = false
+    private var pendingResultValue = 0f
+    private var pendingResultMessage = ""
+    private var lastSpokenText = ""
 
+    // 抽象屬性與方法，由各獨立動作 Fragment 實作
+    abstract val stageName: String
+    abstract val instructionMessage: String
+    abstract val passScore: String
+    abstract fun isCorrectStance(dx: Float, dy: Float): Boolean
+    abstract fun calculateFailScore(elapsedSeconds: Long): String
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentBalanceTestBinding.inflate(inflater, container, false)
         return binding.root
@@ -69,6 +72,11 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        tts = TextToSpeech(requireContext()) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts.language = Locale.TAIWAN
+            }
+        }
         backgroundExecutor = Executors.newSingleThreadExecutor()
         binding.viewFinder.post { setUpCamera() }
 
@@ -81,12 +89,11 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
         }
 
         binding.btnDialogOk.setOnClickListener {
-            binding.dialogLayout.visibility = View.GONE
-            if (currentStage == TestStage.COMPLETED) {
-                findNavController().navigateUp()
-            } else {
-                startInitialPreparation()
-            }
+            com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+                requireActivity(),
+                pendingResultValue,
+                pendingResultMessage
+            )
         }
 
         binding.fabSwitchCamera.setOnClickListener {
@@ -96,6 +103,17 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
                 CameraSelector.LENS_FACING_FRONT
             }
             bindCameraUseCases()
+        }
+    }
+
+    protected fun speakOut(text: String, throttleMs: Long = 0L) {
+        val currentTime = SystemClock.uptimeMillis()
+        if (text != lastSpokenText || currentTime - lastSpeakTime > throttleMs) {
+            if (::tts.isInitialized) {
+                tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+            }
+            lastSpeakTime = currentTime
+            lastSpokenText = text
         }
     }
 
@@ -145,22 +163,16 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
             val results = resultBundle.results.firstOrNull() ?: return@runOnUiThread
             checkBalance(results)
             binding.overlay.setPoseResults(results, resultBundle.inputImageHeight, resultBundle.inputImageWidth, RunningMode.LIVE_STREAM)
-            
-            // 更新 OverlayView 的 leftTop 資訊
-            val stageName = when(currentStage) {
-                TestStage.SIDE_BY_SIDE -> "並排站立 1/3"
-                TestStage.SEMI_TANDEM -> "半並排站立 2/3"
-                TestStage.TANDEM -> "直線站立 3/3"
-                else -> "測試完成"
-            }
+
+
             binding.overlay.updateTestInfo(
                 count = 0,
                 sets = 0,
                 message = binding.tvStatus.text.toString(),
                 accuracy = 0f,
-                label = "", 
-                maxSets = -1, // 不顯示組數/次數
-                setLabel = "階段: $stageName",
+                label = "",
+                maxSets = -1,
+                setLabel = "動作: $stageName", // 改為顯示當前獨立動作名稱
                 time = String.format(Locale.US, "%.2f", currentSeconds),
                 showAccuracy = false
             )
@@ -168,58 +180,40 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
     }
 
     private fun checkBalance(results: PoseLandmarkerResult) {
-        if (isPreparing) return // 準備中不進行偵測
+        if (isTestFinished) return
 
         val landmarks = results.landmarks().firstOrNull() ?: return
 
-        // 1. 檢查必要節點可見度 (雙肩: 11, 12; 雙腳踝: 27, 28)
         val requiredIndices = intArrayOf(11, 12, 27, 28)
         val isVisible = requiredIndices.all { landmarks[it].visibility().orElse(0f) > 0.5f }
 
         if (!isVisible) {
             binding.tvStatus.text = "請全身放入畫面(偵測肩膀雙腳)"
-            // 如果正在測試中卻偵測不到，停止計時
+            binding.tvCenterStatus.text = "請全身放入畫面"
+            speakOut("請全身放入畫面", 2000L)
             if (isTesting) {
                 timer?.cancel()
                 isTesting = false
                 binding.tvTimer.text = "偵測中斷"
-            }
-            if (isPreparing) {
-                preparationTimer?.cancel()
-                isPreparing = false
+                speakOut("偵測中斷")
             }
             return
         }
 
-        // 腳踝節點: 27, 28
         val leftAnkle = landmarks[27]
         val rightAnkle = landmarks[28]
         val dx = abs(leftAnkle.x() - rightAnkle.x())
         val dy = abs(leftAnkle.y() - rightAnkle.y())
 
         if (!isTesting) {
-            var isCorrectStance = false
-            val msg = when(currentStage) {
-                TestStage.SIDE_BY_SIDE -> {
-                    isCorrectStance = dx < 0.12f && dy < 0.05f
-                    "請並排站立"
-                }
-                TestStage.SEMI_TANDEM -> {
-                    isCorrectStance = dy >= 0.04f
-                    "請半並排站立"
-                }
-                TestStage.TANDEM -> {
-                    isCorrectStance = dx < 0.05f && dy >= 0.05f
-                    "請直線站立"
-                }
-                else -> ""
-            }
-
-            if (isCorrectStance) {
+            if (isCorrectStance(dx, dy)) {
                 binding.tvStatus.text = "姿勢正確，開始測試"
+                binding.tvCenterStatus.text = "姿勢正確\n開始測試"
                 if (!binding.dialogLayout.isShown) startCountdown()
             } else {
-                binding.tvStatus.text = msg
+                binding.tvStatus.text = instructionMessage
+                binding.tvCenterStatus.text = instructionMessage
+                speakOut(instructionMessage, 3000L)
             }
             return
         }
@@ -234,23 +228,10 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
         }
     }
 
-    private fun startInitialPreparation() {
-        if (isPreparing || isTesting) return
-        isPreparing = true
-        preparationTimer?.cancel()
-        preparationTimer = object : CountDownTimer(3000, 1000) {
-            override fun onTick(ms: Long) {
-                val sec = (ms / 1000) + 1
-                binding.tvStatus.text = "請回定位，準備倒數 $sec..."
-            }
-            override fun onFinish() {
-                isPreparing = false
-            }
-        }.start()
-    }
-
     private fun startCountdown() {
         if (isTesting) return
+        speakOut("動作正確開始測試")
+        binding.tvCenterStatus.text = "測試中..."
         isTesting = true
         initialAnklePos = null
         currentSeconds = 0f
@@ -263,67 +244,38 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
             }
             override fun onFinish() {
                 currentSeconds = 10f
-                if (isTesting) passStage()
+                if (isTesting) passTest()
             }
         }.start()
     }
 
     private fun failTest() {
         isTesting = false
+        isTestFinished = true
         timer?.cancel()
-        val elapsedSeconds = if (currentSeconds > 0f) currentSeconds else 0f
-        val score = if (currentStage == TestStage.TANDEM) {
-            if (elapsedSeconds < 3f) "0分" else "1分"
-        } else {
-            "0分"
-        }
-        stageTimes.add(elapsedSeconds)
-        showResult("獲得 $score")
-        currentStage = TestStage.COMPLETED
-        finishBalanceMeasure()
+        val elapsedSeconds = currentSeconds
+        showResult("獲得 ${calculateFailScore(elapsedSeconds.toLong())}")
+        finishBalanceMeasure(elapsedSeconds)
     }
 
-    private fun passStage() {
+    private fun passTest() {
         isTesting = false
-        val score = if (currentStage == TestStage.TANDEM) "2分" else "1分"
-        stageTimes.add(currentSeconds)
-        showResult("獲得 $score")
-        currentStage = when(currentStage) {
-            TestStage.SIDE_BY_SIDE -> TestStage.SEMI_TANDEM
-            TestStage.SEMI_TANDEM -> TestStage.TANDEM
-            else -> TestStage.COMPLETED
-        }
-        if (currentStage == TestStage.COMPLETED) {
-            finishBalanceMeasure()
-        }
+        isTestFinished = true
+        currentSeconds = 10f
+        showResult("獲得 $passScore")
+        finishBalanceMeasure(currentSeconds)
     }
 
-    private fun finishBalanceMeasure() {
-        val t1a = stageTimes.getOrElse(0) { 0f }
-        val t1b = stageTimes.getOrElse(1) { 0f }
-        val t1c = stageTimes.getOrElse(2) { 0f }
-
-        var totalScore = 0
-        if (t1a >= 10f) totalScore += 1
-        if (t1b >= 10f) totalScore += 1
-        totalScore += when {
-            t1c >= 10f -> 2
-            t1c >= 3f -> 1
-            else -> 0
-        }
-
-        val message = "平衡測試完成"
-        com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
-            requireActivity(),
-            totalScore.toFloat(),
-            message,
-            listOf(t1a, t1b, t1c)
-        )
+    private fun finishBalanceMeasure(elapsedSeconds: Float) {
+        pendingResultValue = elapsedSeconds
+        pendingResultMessage = "$stageName 測試完成"
     }
 
     private fun showResult(text: String) {
+        binding.tvCenterStatus.text = ""
         binding.dialogLayout.visibility = View.VISIBLE
         binding.tvDialogResult.text = text
+        speakOut(text)
     }
 
     override fun onError(error: String, errorCode: Int) {
@@ -331,10 +283,13 @@ class BalanceTestFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener 
     }
 
     override fun onDestroyView() {
+        if (::tts.isInitialized) {
+            tts.stop()
+            tts.shutdown()
+        }
         _binding = null
         super.onDestroyView()
         timer?.cancel()
-        preparationTimer?.cancel()
         backgroundExecutor.shutdown()
     }
 }

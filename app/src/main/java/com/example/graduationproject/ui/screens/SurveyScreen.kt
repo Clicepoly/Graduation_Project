@@ -58,7 +58,9 @@ fun SurveyScreen(
 
     val launchCurrentCamera = {
         val target = when (viewModel.currentStep) {
-            SurveyStep.Sppb1A, SurveyStep.Sppb1B, SurveyStep.Sppb1C -> "balance_test_fragment"
+            SurveyStep.Sppb1A -> "side_by_side_fragment"
+            SurveyStep.Sppb1B -> "semi_tandem_fragment"
+            SurveyStep.Sppb1C -> "tandem_fragment"
             SurveyStep.Sppb2 -> "gait_speed_4m_fragment"
             SurveyStep.Sppb3 -> "five_times_chair_stand_fragment"
             SurveyStep.FallRisk2 -> "timed_up_and_go_fragment"
@@ -124,6 +126,11 @@ fun AssessmentContent(
         else -> false
     }
     val usesCameraThresholdQuestion = step == SurveyStep.FallRisk2 || step == SurveyStep.FallRisk3
+    val usesCameraMeasurementQuestion = step == SurveyStep.Sppb1A ||
+        step == SurveyStep.Sppb1B ||
+        step == SurveyStep.Sppb1C ||
+        step == SurveyStep.Sppb2 ||
+        step == SurveyStep.Sppb3
 
     Column(
         modifier = Modifier
@@ -229,6 +236,8 @@ fun AssessmentContent(
                     onSubmit = {
                         if (usesCameraThresholdQuestion) {
                             viewModel.submitCurrentCameraDecision()
+                        } else if (usesCameraMeasurementQuestion) {
+                            viewModel.submitCurrentCameraMeasurement()
                         } else {
                             viewModel.applyTimerToCurrentStep()
                         }

@@ -54,6 +54,8 @@ class TimedUpAndGoFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener
     private var currentState = TugAutoState.INPUT_HEIGHT
     private val mainHandler = Handler(Looper.getMainLooper())
     private var tts: TextToSpeech? = null
+    private var pendingResultValue = 0f
+    private var pendingResultMessage = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentTimedUpAndGoBinding.inflate(inflater, container, false)
@@ -92,8 +94,11 @@ class TimedUpAndGoFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener
         }
 
         binding.btnDialogOk.setOnClickListener {
-            binding.dialogLayout.visibility = View.GONE
-            findNavController().navigateUp()
+            com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
+                requireActivity(),
+                pendingResultValue,
+                pendingResultMessage
+            )
         }
 
         binding.fabSwitchCamera.setOnClickListener {
@@ -281,12 +286,8 @@ class TimedUpAndGoFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener
         if (isUnable) {
             binding.dialogLayout.visibility = View.VISIBLE
             binding.tvDialogResult.text = "無法執行 (未獲得分數)"
-            val message = "TUG 測試無法執行"
-            com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
-                requireActivity(),
-                0f,
-                message
-            )
+            pendingResultValue = 0f
+            pendingResultMessage = "TUG 測試無法執行"
             return
         }
 
@@ -296,12 +297,8 @@ class TimedUpAndGoFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener
 
         binding.dialogLayout.visibility = View.VISIBLE
         binding.tvDialogResult.text = String.format(Locale.US, "執行時間: %.2fs\n結果: %s", duration, resultText)
-
-        com.google.mediapipe.examples.poselandmarker.MainActivity.finishWithResult(
-            requireActivity(),
-            duration,
-            message
-        )
+        pendingResultValue = duration
+        pendingResultMessage = message
     }
 
     private fun resetForNextTrial(askHeight: Boolean) {
